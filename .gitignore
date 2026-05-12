@@ -1,0 +1,16 @@
+venv/
+.env
+__pycache__/
+job_outputs/*
+app/storage/*
+*.pyc
+.pytest_cache/
+.DS_Store
+app/storage/uploads/*
+app/storage/summaries/*
+app/storage/tex/*
+app/storage/jobs/*
+!app/storage/uploads/.gitkeep
+!app/storage/summaries/.gitkeep
+!app/storage/tex/.gitkeep
+!app/storage/jobs/.gitkeep

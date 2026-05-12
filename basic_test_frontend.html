@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Education AI Summary Service - Test UI</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #d1d5db;
+      --accent: #2563eb;
+      --ok: #16a34a;
+      --bad: #dc2626;
+      --warn: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+    main {
+      max-width: 1100px;
+      margin: 32px auto;
+      padding: 0 16px 48px;
+    }
+    h1 { margin: 0 0 6px; font-size: 28px; }
+    .subtitle { margin: 0 0 24px; color: var(--muted); }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+    .card h2 { margin: 0 0 14px; font-size: 18px; }
+    label {
+      display: block;
+      margin: 12px 0 6px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    input, select, button, textarea {
+      font: inherit;
+    }
+    input[type="text"], input[type="file"], select, textarea {
+      width: 100%;
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #fff;
+    }
+    input[type="file"] { padding: 8px; }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+    button {
+      border: 0;
+      border-radius: 10px;
+      padding: 10px 14px;
+      background: var(--accent);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button.secondary { background: #4b5563; }
+    button.danger { background: var(--bad); }
+    button:disabled { opacity: 0.55; cursor: not-allowed; }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #0f172a;
+      color: #e5e7eb;
+      padding: 14px;
+      border-radius: 12px;
+      max-height: 360px;
+      overflow: auto;
+      font-size: 13px;
+    }
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      background: #e5e7eb;
+      color: #374151;
+      margin-bottom: 12px;
+    }
+    .status.ok { background: #dcfce7; color: #166534; }
+    .status.bad { background: #fee2e2; color: #991b1b; }
+    .status.warn { background: #fef3c7; color: #92400e; }
+    .progress-wrap {
+      background: #e5e7eb;
+      height: 12px;
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 10px 0 12px;
+    }
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width .25s ease;
+    }
+    .links a {
+      display: inline-block;
+      margin: 5px 10px 5px 0;
+      color: var(--accent);
+      font-weight: 700;
+      text-decoration: none;
+    }
+    .links a:hover { text-decoration: underline; }
+    .small { color: var(--muted); font-size: 13px; }
+    .full { grid-column: 1 / -1; }
+    textarea {
+      min-height: 420px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+    @media (max-width: 820px) {
+      .grid, .row { grid-template-columns: 1fr; }
+      main { margin-top: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Education AI Summary Service - Test UI</h1>
+    <p class="subtitle">Basic browser UI for testing the async job endpoint. This is not a full Notebook app.</p>
+
+    <div class="grid">
+      <section class="card">
+        <h2>1. API connection</h2>
+        <label for="apiBase">API base URL</label>
+        <input id="apiBase" type="text" value="http://127.0.0.1:8001" />
+        <p class="small">If you open this file from another origin and requests fail, enable CORS in FastAPI or serve this file from the same FastAPI backend.</p>
+        <div class="actions">
+          <button type="button" onclick="checkHealth()">Check health</button>
+          <button class="secondary" type="button" onclick="checkProviders()">Check providers</button>
+        </div>
+        <pre id="connectionOutput">No request yet.</pre>
+      </section>
+
+      <section class="card">
+        <h2>2. Summary options</h2>
+        <div class="row">
+          <div>
+            <label for="provider">Provider</label>
+            <select id="provider">
+              <option value="gemini" selected>gemini</option>
+              <option value="ollama">ollama</option>
+              <option value="auto">auto</option>
+            </select>
+          </div>
+          <div>
+            <label for="mode">Mode</label>
+            <select id="mode">
+              <option value="study_pack" selected>study_pack</option>
+              <option value="fast">fast</option>
+              <option value="gemini_single">gemini_single</option>
+              <option value="rate_safe">rate_safe</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div>
+            <label for="language">Language</label>
+            <select id="language">
+              <option value="fr" selected>fr</option>
+              <option value="en">en</option>
+              <option value="ar">ar</option>
+              <option value="de">de</option>
+              <option value="auto">auto</option>
+            </select>
+          </div>
+          <div>
+            <label for="outputFormat">Output format</label>
+            <select id="outputFormat">
+              <option value="json">json</option>
+              <option value="pdf">pdf</option>
+              <option value="tex">tex</option>
+              <option value="both" selected>both</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="style">Style</label>
+        <select id="style">
+          <option value="student_friendly">student_friendly</option>
+          <option value="academic" selected>academic</option>
+          <option value="concise">concise</option>
+          <option value="detailed">detailed</option>
+        </select>
+      </section>
+
+      <section class="card full">
+        <h2>3. Upload files and start job</h2>
+        <label for="files">Documents</label>
+        <input id="files" type="file" multiple accept=".pdf,.PDF,.png,.jpg,.jpeg,.webp,.pptx,.PPTX" />
+        <p class="small">Your current backend mainly supports PDFs. The file input already allows future image/PPTX testing when backend support is added.</p>
+        <div class="actions">
+          <button type="button" id="startBtn" onclick="startJob()">Start job</button>
+          <button type="button" class="secondary" onclick="pollCurrentJob()">Poll once</button>
+          <button type="button" class="danger" onclick="stopPolling()">Stop polling</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>4. Job status</h2>
+        <div id="statusBadge" class="status">No job</div>
+        <div class="progress-wrap"><div id="progressBar" class="progress-bar"></div></div>
+        <p><strong>Job ID:</strong> <span id="jobIdText">-</span></p>
+        <p><strong>Step:</strong> <span id="stepText">-</span></p>
+        <div class="links" id="resultLinks"></div>
+        <pre id="jobOutput">No job submitted yet.</pre>
+      </section>
+
+      <section class="card">
+        <h2>5. Downloads</h2>
+        <p class="small">When the job completes, use these links to open or download the result files.</p>
+        <div class="actions">
+          <button type="button" class="secondary" onclick="openSummary()">Open summary JSON</button>
+          <button type="button" class="secondary" onclick="openPdf()">Open PDF</button>
+          <button type="button" class="secondary" onclick="openTex()">Open TeX</button>
+        </div>
+        <pre id="downloadOutput">Waiting for a completed job.</pre>
+      </section>
+
+      <section class="card full">
+        <h2>6. Summary preview</h2>
+        <textarea id="summaryPreview" readonly placeholder="Summary text will appear here after the job completes."></textarea>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    let currentJobId = null;
+    let pollTimer = null;
+    let lastJobData = null;
+
+    function apiBase() {
+      return document.getElementById('apiBase').value.replace(/\/$/, '');
+    }
+
+    function pretty(data) {
+      return JSON.stringify(data, null, 2);
+    }
+
+    function setOutput(id, data) {
+      document.getElementById(id).textContent = typeof data === 'string' ? data : pretty(data);
+    }
+
+    function setStatus(status, progress = 0, step = '-') {
+      const badge = document.getElementById('statusBadge');
+      badge.textContent = status || 'No job';
+      badge.className = 'status';
+      if (status === 'completed') badge.classList.add('ok');
+      else if (status === 'failed') badge.classList.add('bad');
+      else if (status === 'processing' || status === 'queued') badge.classList.add('warn');
+      document.getElementById('progressBar').style.width = `${Math.max(0, Math.min(100, progress || 0))}%`;
+      document.getElementById('stepText').textContent = step || '-';
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, options);
+      const text = await response.text();
+      let data;
+      try { data = text ? JSON.parse(text) : {}; }
+      catch { data = { raw: text }; }
+      if (!response.ok) {
+        throw new Error(`${response.status} ${response.statusText}\n${pretty(data)}`);
+      }
+      return data;
+    }
+
+    async function checkHealth() {
+      try {
+        const data = await requestJson(`${apiBase()}/api/v1/health`);
+        setOutput('connectionOutput', data);
+      } catch (err) {
+        setOutput('connectionOutput', `Health check failed:\n${err.message}\n\nPossible cause: API is not running or CORS is not enabled.`);
+      }
+    }
+
+    async function checkProviders() {
+      try {
+        const data = await requestJson(`${apiBase()}/api/v1/providers`);
+        setOutput('connectionOutput', data);
+      } catch (err) {
+        setOutput('connectionOutput', `Provider check failed:\n${err.message}`);
+      }
+    }
+
+    async function startJob() {
+      const fileInput = document.getElementById('files');
+      if (!fileInput.files.length) {
+        alert('Select at least one document first.');
+        return;
+      }
+
+      stopPolling();
+      document.getElementById('startBtn').disabled = true;
+      document.getElementById('summaryPreview').value = '';
+      document.getElementById('resultLinks').innerHTML = '';
+      setStatus('queued', 0, 'Uploading files');
+
+      const formData = new FormData();
+      for (const file of fileInput.files) {
+        formData.append('files', file);
+      }
+      formData.append('provider', document.getElementById('provider').value);
+      formData.append('mode', document.getElementById('mode').value);
+      formData.append('language', document.getElementById('language').value);
+      formData.append('output_format', document.getElementById('outputFormat').value);
+      formData.append('style', document.getElementById('style').value);
+
+      try {
+        const data = await requestJson(`${apiBase()}/api/v1/jobs`, {
+          method: 'POST',
+          body: formData
+        });
+        currentJobId = data.job_id;
+        lastJobData = data;
+        document.getElementById('jobIdText').textContent = currentJobId;
+        setOutput('jobOutput', data);
+        setStatus(data.status || 'queued', data.progress || 0, data.step || 'Queued');
+        pollTimer = setInterval(pollCurrentJob, 2500);
+        await pollCurrentJob();
+      } catch (err) {
+        setStatus('failed', 0, 'Submit failed');
+        setOutput('jobOutput', `Job submit failed:\n${err.message}`);
+      } finally {
+        document.getElementById('startBtn').disabled = false;
+      }
+    }
+
+    async function pollCurrentJob() {
+      if (!currentJobId) {
+        setOutput('jobOutput', 'No current job ID.');
+        return;
+      }
+      try {
+        const data = await requestJson(`${apiBase()}/api/v1/jobs/${currentJobId}`);
+        lastJobData = data;
+        setOutput('jobOutput', data);
+        setStatus(data.status, data.progress, data.step || data.message || '-');
+        updateLinks(data);
+
+        if (data.status === 'completed') {
+          stopPolling(false);
+          await loadSummaryPreview();
+        }
+        if (data.status === 'failed') {
+          stopPolling(false);
+        }
+      } catch (err) {
+        setOutput('jobOutput', `Polling failed:\n${err.message}`);
+      }
+    }
+
+    function stopPolling(showMessage = true) {
+      if (pollTimer) clearInterval(pollTimer);
+      pollTimer = null;
+      if (showMessage) setOutput('downloadOutput', 'Polling stopped.');
+    }
+
+    function updateLinks(data) {
+      const links = document.getElementById('resultLinks');
+      if (!currentJobId) {
+        links.innerHTML = '';
+        return;
+      }
+      const summaryUrl = `${apiBase()}/api/v1/jobs/${currentJobId}/summary`;
+      const pdfUrl = `${apiBase()}/api/v1/jobs/${currentJobId}/pdf`;
+      const texUrl = `${apiBase()}/api/v1/jobs/${currentJobId}/tex`;
+      links.innerHTML = `
+        <a href="${summaryUrl}" target="_blank">Summary JSON</a>
+        <a href="${pdfUrl}" target="_blank">PDF</a>
+        <a href="${texUrl}" target="_blank">TeX</a>
+      `;
+      setOutput('downloadOutput', { summaryUrl, pdfUrl, texUrl });
+    }
+
+    async function loadSummaryPreview() {
+      if (!currentJobId) return;
+      try {
+        const data = await requestJson(`${apiBase()}/api/v1/jobs/${currentJobId}/summary`);
+        document.getElementById('summaryPreview').value = data.summary || pretty(data);
+      } catch (err) {
+        document.getElementById('summaryPreview').value = `Could not load summary:\n${err.message}`;
+      }
+    }
+
+    function openSummary() {
+      if (!currentJobId) return alert('No job yet.');
+      window.open(`${apiBase()}/api/v1/jobs/${currentJobId}/summary`, '_blank');
+    }
+    function openPdf() {
+      if (!currentJobId) return alert('No job yet.');
+      window.open(`${apiBase()}/api/v1/jobs/${currentJobId}/pdf`, '_blank');
+    }
+    function openTex() {
+      if (!currentJobId) return alert('No job yet.');
+      window.open(`${apiBase()}/api/v1/jobs/${currentJobId}/tex`, '_blank');
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,45 @@
+services:
+  summary-service:
+    build: .
+    container_name: education-ai-summary-service
+    ports:
+      - "8001:8001"
+    environment:
+      APP_NAME: "Education AI Summary Service"
+      APP_VERSION: "1.7.0"
+      PORT: "8001"
+      STORAGE_DIR: "app/storage"
+      KEEP_UPLOADED_FILES: "true"
+      MAX_UPLOAD_SIZE_MB: "50"
+      MAX_TOTAL_UPLOAD_SIZE_MB: "150"
+      MAX_FILES_PER_REQUEST: "8"
+      ALLOWED_ORIGINS: "*"
+
+      # Choose one: ollama, gemini, or auto
+      LLM_PROVIDER: "auto"
+
+      # If Ollama runs on your host machine, this works on Docker Desktop.
+      # On Linux, the extra_hosts line below maps host.docker.internal to the host gateway.
+      OLLAMA_BASE_URL: "http://host.docker.internal:11434"
+      OLLAMA_MODEL: "llama3.2:3b"
+      OLLAMA_TIMEOUT_SECONDS: "300"
+      OLLAMA_NUM_CTX: "8192"
+
+      # Gemini option. Prefer using a .env file or shell variable instead of hardcoding the key.
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      GEMINI_MODEL: "gemini-2.5-flash-lite"
+      GEMINI_TIMEOUT_SECONDS: "600"
+      GEMINI_MAX_OUTPUT_TOKENS: "9000"
+      GEMINI_SINGLE_CALL_STUDY_PACK: "true"
+      GEMINI_STUDY_PACK_MAX_INPUT_CHARS: "90000"
+      GEMINI_RETRY_ATTEMPTS: "2"
+      GEMINI_FALLBACK_TO_OLLAMA: "true"
+
+      SUMMARY_MODE: "study_pack"
+      SUMMARY_LANGUAGE: "fr"
+      SUMMARY_STYLE: "student_friendly"
+      DEFAULT_OUTPUT_FORMAT: "both"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./app/storage:/app/app/storage
